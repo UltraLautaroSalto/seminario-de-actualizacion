@@ -1,0 +1,31 @@
+<!-- Recordar usar un valor Booleano(Verdadero o Falso) para determinar que cosas muestra el navegador a X usuario y que cosas no  -->
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página con Botones</title>
+    <link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+    <h1>Elige una opción</h1>
+    <button id="opcion_1">CLIENTE</button>
+    <button id="opcion_2">VENDEDOR</button>
+
+    <div id="Opcion_1_elegida" class="hidden">
+        <button id="PedirProducto">Pedir Producto</button>
+        <button id="PagarFactura">Pagar Factura</button>
+    </div>
+
+    <div id="Opcion_2_elegida" class="hidden">
+        <button id="AgregarProducto">Agregar Producto</button>
+        <button id="RetirarProducto">Retirar Producto</button>
+        <button id="PesarProducto">Pesar Producto</button>
+        <button id="EmitirFactura">Emitir Factura</button>
+    </div>
+
+    <button id="createClientFormData">Crear Cliente</button>
+
+    <script src="funciones.js"></script>
+</body>
+</html>

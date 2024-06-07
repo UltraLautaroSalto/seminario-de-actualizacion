@@ -1,0 +1,103 @@
+/* const opcion_1 = document.getElementById('opcion_1');
+    const opcion_2 = document.getElementById('opcion_2');
+    const Opcion_1_elegida = document.getElementById("Opcion_1_elegida");
+    const Opcion_2_elegida = document.getElementById("Opcion_2_elegida");
+
+    const Agregar_Producto = document.getElementById("AgregarProducto");
+    const Retirar_Producto = document.getElementById("RetirarProducto");
+    const Pesar_Producto = document.getElementById("PesarProducto");
+    const Emitir_Factura = document.getElementById("EmitirFactura");
+
+    const Pedir_Producto = document.getElementById("PedirProducto");
+    const Pagar_Factura = document.getElementById("PagarFactura");
+    */
+    
+    /*
+    if (!opcion_1 || !opcion_2 || !Opcion_1_elegida || !Opcion_2_elegida || 
+        !Agregar_Producto || !Retirar_Producto || !Pesar_Producto || !Emitir_Factura || 
+        !Pedir_Producto || !Pagar_Factura || !createClientFormDataButton) {
+        console.error('Algunos elementos no se encontraron en el DOM');
+        return;
+    }
+
+    opcion_1.addEventListener("click", function(){
+        contraseña_cliente = parseInt(contraseña_clienteStr);
+
+        if(nombre_cliente === "marcos" && contraseña_cliente === 1234){
+            Opcion_1_elegida.classList.remove('hidden');
+            Opcion_2_elegida.classList.add('hidden');
+        } else{
+            alert("ERROR: La Contraseña o el Nombre es INCORRECTO o no se ha introducido NADA");
+        }
+    });
+
+    opcion_2.addEventListener("click", function(){
+        var nombre_vendedor = prompt("Introduce su Nombre");
+        var contraseña_vendedorStr = prompt("Introduce su Contraseña");
+        var contraseña_vendedor = parseInt(contraseña_vendedorStr);
+
+        if(nombre_vendedor === "Jorge" && contraseña_vendedor === 4321){
+            Opcion_1_elegida.classList.add('hidden');
+            Opcion_2_elegida.classList.remove('hidden');
+        }else{
+            alert("ERROR: La Contraseña o el Nombre es INCORRECTO o no se ha introducido NADA");
+        }
+    });
+
+    // Cosas que puede hacer el Comprador
+    Pedir_Producto.addEventListener("click", function(){
+        producto_nombre = prompt("Ingrese el Nombre del Producto");
+    });
+
+    Pagar_Factura.addEventListener("click", function(){
+        producto_pagado = true;
+
+        if(producto_pagado === true){
+            alert("El Producto ha sido Pagado con Exito");
+        } else {
+            alert("ERROR: Algo ha Fallado, intente de nuevo");
+        }
+    });
+
+    // Cosas que puede hacer el Vendedor
+    Agregar_Producto.addEventListener("click", function(){
+        if (producto_nombre) {
+            alert('El Producto ' + producto_nombre + ' ha sido aceptado y agregado al carrito');
+            producto_estado = true;
+        } else {
+            alert('No hay ningún producto para agregar');
+        }
+    });
+
+    Retirar_Producto.addEventListener("click", function(){
+        if (producto_nombre) {
+            alert('El Producto ' + producto_nombre + ' ha sido retirado del carrito');
+        } else {
+            alert('No hay ningún producto para retirar');
+        }
+    });
+
+    Pesar_Producto.addEventListener('click', function() {
+        alert('El producto ha sido pesado');
+    });
+
+    Emitir_Factura.addEventListener('click', function() {
+        alert('La factura ha sido emitida');
+    });
+
+    // Crear cliente
+    createClientFormDataButton.addEventListener('click', function() {
+        onCreateClientUserButtonClick();
+    });
+
+    function getClientFormValues(){
+
+        return createClientFormData;
+    }*/
+
+//var producto_estado = false;
+    //var producto_nombre = '';
+    //var producto_pagado = false;
+
+    //var nombre_cliente = "";
+    //var contraseña_cliente = "";
