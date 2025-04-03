@@ -24,6 +24,12 @@ struct Productos {
     int Stock_Producto;
 };
 
+vector<Productos> productos = { 
+    {1, "Lavandina 1L", 875.25, 3000},
+    {2, "Detergente x 500mL", 1102.45, 2010},
+    {3, "Jabón en polvo x 250g", 650.22, 407}
+};
+
 void Enlistar_Productos(const vector<Productos>& productos){
 
     if(productos.empty()){
@@ -86,11 +92,6 @@ void Remove_Producto(vector<Productos>& productos, int id){
 }
 
 void Opciones_Productos(){
-    vector<Productos> productos = { 
-        {1, "Lavandina 1L", 875.25, 3000},
-        {2, "Detergente x 500mL", 1102.45, 2010},
-        {3, "Jabón en polvo x 250g", 650.22, 407}
-    };
 
     int siguienteID = 4;
     string Opciones_Product = "";
