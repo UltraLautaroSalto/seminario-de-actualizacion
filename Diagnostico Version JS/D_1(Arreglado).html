@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Productos de Limpieza</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+    .login-container {
+      max-width: 300px;
+      margin: auto;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+    }
+    input {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+    #mensaje {
+      margin-top: 15px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-container">
+    <h2>Login</h2>
+    <input type="text" id="usuario" placeholder="Usuario" />
+    <input type="password" id="password" placeholder="Contraseña" />
+    <button onclick="iniciarSesion()">Ingresar</button>
+    <p id="mensaje"></p>
+  </div>
+
+  <script>
+    // Datos de ejemplo
+    let usuarios = [
+      { id: 1, user: "cliente123", password: "limpieza2024", cargo: "Cliente" }
+    ];
+
+    let intentos = 0;
+    const maxIntentos = 3;
+
+    function iniciarSesion() {
+      // Obtener valores ingresados desde el HTML
+      let userIngresado = document.getElementById("usuario").value;
+      let passwordIngresada = document.getElementById("password").value;
+      let mensaje = document.getElementById("mensaje");
+
+      // Buscar si existe un usuario con ese nombre y contraseña
+      let usuario = usuarios.find(u => u.user === userIngresado && u.password === passwordIngresada);
+
+      if (usuario) {
+        mensaje.textContent = "✅ Bienvenido/a " + usuario.user + " (" + usuario.cargo + ")";
+        mensaje.style.color = "green";
+        intentos = 0;
+      } else {
+        intentos++;
+        mensaje.textContent = "❌ Usuario o contraseña incorrectos. Intento " + intentos + " de " + maxIntentos;
+        mensaje.style.color = "red";
+
+        if (intentos >= maxIntentos) {
+          mensaje.textContent = "⚠️ Ha superado el número máximo de intentos. Por favor póngase en contacto con el soporte técnico.";
+          mensaje.style.color = "orange";
+          // Desactivar inputs y botón
+          document.getElementById("usuario").disabled = true;
+          document.getElementById("password").disabled = true;
+          document.querySelector("button").disabled = true;
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

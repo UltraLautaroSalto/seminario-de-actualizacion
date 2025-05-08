@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Ventas - Login</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 400px;
+      margin: auto;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    input, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+
+    #mensaje {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    #menu, #cambiar-contrasena {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <div id="login">
+      <h2>Login</h2>
+      <input type="text" id="usuario" placeholder="Usuario" />
+      <input type="password" id="password" placeholder="Contraseña" />
+      <button onclick="iniciarSesion()">Ingresar</button>
+      <p id="mensaje"></p>
+    </div>
+
+    <div id="menu">
+      <h2 id="bienvenida"></h2>
+      <button onclick="mostrarCambioContrasena()">1. Cambiar contraseña</button>
+      <button onclick="salir()">2. Salir</button>
+    </div>
+
+    <div id="cambiar-contrasena">
+      <h3>Cambiar contraseña</h3>
+      <input type="password" id="nuevaPassword" placeholder="Nueva contraseña" />
+      <button onclick="cambiarContrasena()">Guardar</button>
+      <button onclick="cancelarCambio()">Cancelar</button>
+    </div>
+  </div>
+
+  <script>
+    // Datos de ejemplo
+    let usuarios = [
+      { id: 1, user: "cliente123", password: "limpieza2024", cargo: "Cliente" }
+    ];
+  
+    let intentos = 0;
+    const maxIntentos = 3;
+    let usuarioActivo = null; // Nuevo: usuario que ha iniciado sesión
+  
+    function iniciarSesion() {
+      let userIngresado = document.getElementById("usuario").value;
+      let passwordIngresada = document.getElementById("password").value;
+      let mensaje = document.getElementById("mensaje");
+  
+      let usuario = usuarios.find(u => u.user === userIngresado && u.password === passwordIngresada);
+  
+      if (usuario) {
+        mensaje.textContent = "✅ Bienvenido/a " + usuario.user + " (" + usuario.cargo + ")";
+        mensaje.style.color = "green";
+        intentos = 0;
+        usuarioActivo = usuario; // Guardar usuario logueado
+        mostrarMenu(usuario.user); // MOSTRAR MENU
+      } else {
+        intentos++;
+        mensaje.textContent = "❌ Usuario o contraseña incorrectos. Intento " + intentos + " de " + maxIntentos;
+        mensaje.style.color = "red";
+  
+        if (intentos >= maxIntentos) {
+          mensaje.textContent = "⚠️ Ha superado el número máximo de intentos. Por favor póngase en contacto con el soporte técnico.";
+          mensaje.style.color = "orange";
+          document.getElementById("usuario").disabled = true;
+          document.getElementById("password").disabled = true;
+          document.querySelector("button").disabled = true;
+        }
+      }
+    }
+  
+    function mostrarMenu(nombreUsuario) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("bienvenida").textContent = `¡Bienvenido/a ${nombreUsuario}!`;
+    }
+  
+    function mostrarCambioContrasena() {
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("cambiar-contrasena").style.display = "block";
+    }
+  
+    function cambiarContrasena() {
+      const nuevaPassword = document.getElementById("nuevaPassword").value;
+      const mensaje = document.getElementById("mensaje");
+  
+      if (nuevaPassword.length < 4) {
+        mensaje.textContent = "La nueva contraseña debe tener al menos 4 caracteres.";
+        mensaje.style.color = "red";
+        return;
+      }
+  
+      if (usuarioActivo) {
+        usuarioActivo.password = nuevaPassword; // Actualizar solo al usuario logueado
+        mensaje.textContent = "Contraseña cambiada exitosamente.";
+        mensaje.style.color = "green";
+        cancelarCambio();
+      } else {
+        mensaje.textContent = "Error: no hay usuario activo.";
+        mensaje.style.color = "red";
+      }
+    }
+  
+    function cancelarCambio() {
+      document.getElementById("nuevaPassword").value = "";
+      document.getElementById("cambiar-contrasena").style.display = "none";
+      document.getElementById("menu").style.display = "block";
+    }
+  
+    function salir() {
+      usuarioActivo = null;
+      document.getElementById("usuario").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("mensaje").textContent = "";
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("login").style.display = "block";
+    }
+  </script>  
+
+</body>
+</html>
