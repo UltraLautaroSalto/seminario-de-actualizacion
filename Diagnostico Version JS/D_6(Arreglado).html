@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Ventas - Principal</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+    }
+
+    .container {
+      max-width: 500px;
+      margin: auto;
+      border: 1px solid #ccc;
+      padding: 20px;
+      border-radius: 10px;
+    }
+
+    input, button {
+      width: 100%;
+      margin-bottom: 10px;
+      padding: 8px;
+    }
+
+    #mensaje {
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+
+    #login, #menu, #crear-cuenta, #menu-principal, #cambiar-contrasena, #ver-productos {
+      display: none;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 10px;
+    }
+
+    th, td {
+      border: 1px solid #999;
+      padding: 8px;
+      text-align: left;
+    }
+
+    th {
+      background-color: #eee;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+
+    <!-- MENÚ PRINCIPAL -->
+    <div id="menu-principal">
+      <h2>Bienvenido</h2>
+      <button onclick="mostrarLogin()">1. Iniciar sesión</button>
+      <button onclick="mostrarCrearCuenta()">2. Crear cuenta de usuario</button>
+    </div>
+
+    <!-- LOGIN -->
+    <div id="login">
+      <h2>Iniciar sesión</h2>
+      <input type="text" id="usuario" placeholder="Usuario" />
+      <input type="password" id="password" placeholder="Contraseña" />
+      <button onclick="iniciarSesion()">Ingresar</button>
+      <button onclick="volverAlMenu()">Volver</button>
+      <p id="mensaje"></p>
+    </div>
+
+    <!-- MENÚ DEL USUARIO -->
+    <div id="menu">
+      <h2 id="bienvenida"></h2>
+      <button onclick="mostrarCambioContrasena()">1. Cambiar contraseña</button>
+      <button onclick="mostrarProductos()">2. Ver productos</button>
+      <button onclick="nuevoArticulo()">3. Nuevo artículo</button>
+      <button onclick="editarArticulo()">4. Editar artículo</button>
+      <button onclick="eliminarArticulo()">5. Eliminar artículo</button>
+      <button onclick="salir()">6. Salir</button>
+      
+    </div>
+
+    <!-- CAMBIO DE CONTRASEÑA -->
+    <div id="cambiar-contrasena">
+      <h3>Cambiar contraseña</h3>
+      <input type="password" id="nuevaPassword" placeholder="Nueva contraseña" />
+      <button onclick="cambiarContrasena()">Guardar</button>
+      <button onclick="cancelarCambio()">Cancelar</button>
+    </div>
+
+    <!-- CREACIÓN DE CUENTA -->
+    <div id="crear-cuenta">
+      <h2>Crear cuenta de usuario</h2>
+      <input type="text" id="nuevoUsuario" placeholder="Nuevo usuario" />
+      <input type="password" id="nuevaClave" placeholder="Nueva contraseña" />
+      <button onclick="crearCuenta()">Crear</button>
+      <button onclick="volverAlMenu()">Volver</button>
+      <p id="mensaje-crear"></p>
+    </div>
+
+    <!-- VER PRODUCTOS -->
+    <div id="ver-productos">
+      <h3>Lista de productos disponibles</h3>
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nombre</th>
+            <th>Precio ($)</th>
+            <th>Stock</th>
+          </tr>
+        </thead>
+        <tbody id="tabla-productos">
+          <!-- Rellenado dinámicamente -->
+        </tbody>
+      </table>
+      <button onclick="mostrarMenu(usuarioActivo.user)">Volver</button>
+    </div>
+
+    <!-- NUEVO ARTÍCULO -->
+    <div id="nuevo-articulo" style="display: none;">
+      <h3>Agregar nuevo artículo</h3>
+      <input type="text" id="nuevoNombre" placeholder="Nombre del producto" />
+      <input type="number" id="nuevoPrecio" placeholder="Precio" />
+      <input type="number" id="nuevoStock" placeholder="Stock" />
+      <button onclick="guardarNuevoArticulo()">Guardar</button>
+      <button onclick="mostrarMenu(usuarioActivo.user)">Cancelar</button>
+    </div>
+
+    <!-- EDITAR ARTÍCULO -->
+    <div id="editar-articulo" style="display: none;">
+      <h3>Editar artículo</h3>
+      <input type="number" id="idEditar" placeholder="ID del producto" />
+      <input type="text" id="editarNombre" placeholder="Nuevo nombre" />
+      <input type="number" id="editarPrecio" placeholder="Nuevo precio" />
+      <input type="number" id="editarStock" placeholder="Nuevo stock" />
+      <button onclick="guardarEdicionArticulo()">Guardar cambios</button>
+      <button onclick="mostrarMenu(usuarioActivo.user)">Cancelar</button>
+    </div>
+
+    <!-- ELIMINAR ARTÍCULO -->
+    <div id="eliminar-articulo" style="display: none;">
+      <h3>Eliminar artículo</h3>
+      <input type="number" id="idEliminar" placeholder="ID del producto" />
+      <button onclick="confirmarEliminarArticulo()">Eliminar</button>
+      <button onclick="mostrarMenu(usuarioActivo.user)">Cancelar</button>
+    </div>
+
+  </div>
+
+  <script>
+    // Usuarios almacenados en memoria
+    let usuarios = [
+      { id: 1, user: "cliente123", password: "limpieza2024", cargo: "Cliente" }
+    ];
+
+    let intentosFallidos = 0;
+    const maxIntentos = 3;
+    let usuarioActivo = null;
+
+    let Productos = [
+      { id: 1, nombreProducto: "Lavandina x 1L", precio: "875.25", stock: "3000" },
+      { id: 4, nombreProducto: "Detergente x 500ML", precio: "1102.45", stock: "2010" },
+      { id: 22, nombreProducto: "Jabón en polvo x 250g", precio: "650.22", stock: "407" }
+    ];
+
+    function iniciarSesion() {
+      const userIngresado = document.getElementById("usuario").value;
+      const passwordIngresada = document.getElementById("password").value;
+
+      const usuario = usuarios.find(u => u.user === userIngresado && u.password === passwordIngresada);
+
+      if (usuario) {
+        usuarioActivo = usuario;
+        intentosFallidos = 0;
+        mostrarMenu(usuario.user);
+      } else {
+        intentosFallidos++;
+        alert("❌ Usuario o contraseña incorrectos. Intento " + intentosFallidos + " de " + maxIntentos);
+
+        if (intentosFallidos >= maxIntentos) {
+        alert("⚠️ Ha superado el número máximo de intentos. Contacte al soporte técnico.");
+        document.getElementById("usuario").disabled = true;
+        document.getElementById("password").disabled = true;
+        document.querySelectorAll("button").forEach(b => b.disabled = true);
+        }
+      }
+    }
+
+    function mostrarMenu(nombreUsuario) {
+      ocultarTodo();
+      document.getElementById("menu").style.display = "block";
+      document.getElementById("bienvenida").textContent = `¡Bienvenido/a ${nombreUsuario}!`;
+    }
+
+    function mostrarLogin() {
+      ocultarTodo();
+      document.getElementById("login").style.display = "block";
+    }
+
+    function mostrarCrearCuenta() {
+      ocultarTodo();
+      document.getElementById("crear-cuenta").style.display = "block";
+    }
+
+    function mostrarCambioContrasena() {
+      ocultarTodo();
+      document.getElementById("cambiar-contrasena").style.display = "block";
+    }
+
+    function cambiarContrasena() {
+      const nuevaPassword = document.getElementById("nuevaPassword").value;
+
+      if (!validarPasswordSegura(nuevaPassword)) return;
+
+      if (usuarioActivo) {
+        usuarioActivo.password = nuevaPassword;
+        alert("✅ Contraseña cambiada exitosamente.");
+        cancelarCambio();
+      } else {
+        alert("⚠️ Error: no hay usuario activo.");
+      }
+    }
+
+    function crearCuenta() {
+      const usuario = document.getElementById("nuevoUsuario").value;
+      const clave = document.getElementById("nuevaClave").value;
+
+      const existe = usuarios.some(u => u.user === usuario);
+      if (existe) {
+        alert("Ese usuario ya existe.");
+        return;
+      }
+
+      if (!validarPasswordSegura(clave)) return;
+
+      const nuevoId = usuarios.length + 1;
+      usuarios.push({ id: nuevoId, user: usuario, password: clave, cargo: "Cliente" });
+
+      alert("✅ Cuenta creada exitosamente.");
+      volverAlMenu();
+    }
+
+    function validarPasswordSegura(password) {
+      const longitudValida = password.length >= 8 && password.length <= 16;
+      const tieneMayuscula = /[A-Z]/.test(password);
+      const simbolosEspeciales = password.match(/[^a-zA-Z0-9]/g);
+      const cantidadSimbolos = simbolosEspeciales ? simbolosEspeciales.length : 0;
+
+      if (!longitudValida) {
+        alert("❌ La contraseña debe tener entre 8 y 16 caracteres.");
+        return false;
+      }
+      if (!tieneMayuscula) {
+        alert("❌ La contraseña debe tener al menos una letra mayúscula.");
+        return false;
+      }
+      if (cantidadSimbolos < 2) {
+        alert("❌ La contraseña debe tener al menos 2 símbolos especiales.");
+        return false;
+      }
+      return true;
+    }
+
+    function mostrarProductos() {
+    ocultarTodo();
+    document.getElementById("ver-productos").style.display = "block";
+
+    const tabla = document.getElementById("tabla-productos");
+    tabla.innerHTML = ""; // Limpiar antes de volver a cargar
+
+    Productos.forEach(p => {
+      const fila = document.createElement("tr");
+      fila.innerHTML = `
+        <td>${p.id}</td>
+        <td>${p.nombreProducto}</td>
+        <td>${p.precio}</td>
+        <td>${p.stock}</td>
+      `;
+      tabla.appendChild(fila);
+      });
+    }
+
+    function nuevoArticulo() {
+    ocultarTodo();
+    document.getElementById("nuevo-articulo").style.display = "block";
+    }
+
+  function guardarNuevoArticulo() {
+    const nombre = document.getElementById("nuevoNombre").value;
+    const precio = parseFloat(document.getElementById("nuevoPrecio").value);
+    const stock = parseInt(document.getElementById("nuevoStock").value);
+
+    if (!nombre || isNaN(precio) || isNaN(stock)) {
+      alert("⚠️ Todos los campos son obligatorios.");
+      return;
+    }
+
+    const nuevoId = Productos.length ? Math.max(...Productos.map(p => p.id)) + 1 : 1;
+    Productos.push({ id: nuevoId, nombreProducto: nombre, precio: precio.toFixed(2), stock: stock });
+
+    alert("✅ Producto agregado correctamente.");
+    mostrarMenu(usuarioActivo.user);
+  }
+
+  function editarArticulo() {
+    ocultarTodo();
+    document.getElementById("editar-articulo").style.display = "block";
+  }
+
+  function guardarEdicionArticulo() {
+    const id = parseInt(document.getElementById("idEditar").value);
+    const nombre = document.getElementById("editarNombre").value;
+    const precio = parseFloat(document.getElementById("editarPrecio").value);
+    const stock = parseInt(document.getElementById("editarStock").value);
+
+    const producto = Productos.find(p => p.id === id);
+    if (!producto) {
+      alert("❌ Producto no encontrado.");
+      return;
+    }
+
+    if (nombre) producto.nombreProducto = nombre;
+    if (!isNaN(precio)) producto.precio = precio.toFixed(2);
+    if (!isNaN(stock)) producto.stock = stock;
+
+    alert("✅ Producto editado correctamente.");
+    mostrarMenu(usuarioActivo.user);
+  }
+
+  function eliminarArticulo() {
+    ocultarTodo();
+    document.getElementById("eliminar-articulo").style.display = "block";
+  }
+
+  function confirmarEliminarArticulo() {
+    const id = parseInt(document.getElementById("idEliminar").value);
+    const index = Productos.findIndex(p => p.id === id);
+
+    if (index === -1) {
+      alert("❌ Producto no encontrado.");
+      return;
+    }
+
+    if (confirm("¿Está seguro que desea eliminar este artículo?")) {
+      Productos.splice(index, 1);
+      alert("✅ Producto eliminado.");
+    }
+
+    mostrarMenu(usuarioActivo.user);
+  }
+
+
+    function cancelarCambio() {
+      document.getElementById("nuevaPassword").value = "";
+      mostrarMenu(usuarioActivo.user);
+    }
+
+    function salir() {
+      usuarioActivo = null;
+      document.getElementById("usuario").value = "";
+      document.getElementById("password").value = "";
+      document.getElementById("mensaje").textContent = "";
+      volverAlMenu();
+    }
+
+    
+    function ocultarTodo() {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("menu").style.display = "none";
+      document.getElementById("crear-cuenta").style.display = "none";
+      document.getElementById("cambiar-contrasena").style.display = "none";
+      document.getElementById("menu-principal").style.display = "none";
+      document.getElementById("ver-productos").style.display = "none";
+      document.getElementById("nuevo-articulo").style.display = "none";
+      document.getElementById("editar-articulo").style.display = "none";
+      document.getElementById("eliminar-articulo").style.display = "none";
+    }
+
+    function volverAlMenu() {
+      ocultarTodo();
+      document.getElementById("menu-principal").style.display = "block";
+    }
+
+    // Mostrar menú principal al inicio
+    volverAlMenu();
+  </script>
+
+</body>
+</html>
