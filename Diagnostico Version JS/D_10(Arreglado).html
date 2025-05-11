@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Sistema de Ventas - Productos de Limpieza</title>
+</head>
+<body>
+  <h1>Sistema de Ventas de Productos de Limpieza</h1>
+  <div id="menu"></div>
+
+  <script>
+    const usuarios = [
+      {usuario: "admin", nombre: "admin123", contrasena: "administrar123", categoria: "Administrador"},
+      {usuario: "cliente1", nombre: "cliente123", contrasena: "consumir123", categoria: "Cliente"},
+      {usuario: "vendedor1", nombre: "vendedor123", contrasena: "Bender123", categoria: "Vendedor"},
+      {usuario: "deposito1", nombre: "deposito123", contrasena: "depositar123", categoria: "Trabajador de depósito"}
+    ];
+
+    let usuarioActual = null;
+
+    const productos = [
+      { id: 1, nombre: "Lavandina x 1L", precio: 875.25, stock: 3000 },
+      { id: 4, nombre: "Detergente x 500mL", precio: 1102.45, stock: 2010 },
+      { id: 22, nombre: "Jabón en polvo x 250g", precio: 650.22, stock: 407 }
+    ];
+
+    const permisosPorRol = {
+      "Administrador": ["ver_productos", "gestionar_articulos", "comprar_articulo", "cambiar_contrasena"],
+      "Cliente": ["ver_productos", "comprar_articulo"],
+      "Vendedor": ["ver_productos", "comprar_articulo"],
+      "Trabajador de depósito": ["gestionar_articulos"]
+    };
+
+    function tienePermiso(permiso) {
+      return permisosPorRol[usuarioActual.categoria]?.includes(permiso);
+    }
+
+    function mostrarMenuPrincipal() {
+    document.getElementById("menu").innerHTML = `
+    <button onclick="iniciarSesion()">1. Iniciar sesión</button>
+    `;
+    }
+
+
+    function iniciarSesion() {
+      let intentos = 0;
+      function solicitarCredenciales() {
+        const entradaUsuario = prompt("Ingrese su nombre de usuario o nombre completo:");
+        const contrasena = prompt("Ingrese su contraseña:");
+
+        const u = usuarios.find(u =>
+          (u.usuario.toLowerCase() === entradaUsuario.toLowerCase() ||
+           u.nombre.toLowerCase() === entradaUsuario.toLowerCase()) &&
+          u.contrasena === contrasena
+        );
+
+        if (u) {
+          usuarioActual = u;
+          alert(`¡Bienvenido/a ${u.nombre} (${u.categoria})!`);
+          mostrarMenuUsuario();
+        } else {
+          intentos++;
+          if (intentos >= 3) {
+            alert("Usuario bloqueado. Contacte al administrador");
+            mostrarMenuPrincipal();
+          } else {
+            alert("Usuario y/o contraseña incorrecta");
+            solicitarCredenciales();
+          }
+        }
+      }
+      solicitarCredenciales();
+    }
+
+    function mostrarMenuUsuario() {
+    let menuHTML = "";
+
+    if (usuarioActual.categoria === "Administrador") {
+        menuHTML += `<button onclick="gestionarUsuarios()">0. Gestionar usuarios</button>`;
+    }
+    if (tienePermiso("cambiar_contrasena")) {
+        menuHTML += `<button onclick="cambiarContrasena()">1. Cambiar contraseña</button>`;
+    }
+    if (tienePermiso("ver_productos")) {
+        menuHTML += `<button onclick="listarArticulos()">2. Ver productos</button>`;
+    }
+    if (tienePermiso("gestionar_articulos")) {
+        menuHTML += `<button onclick="gestionarArticulos()">3. Gestionar artículos</button>`;
+    }
+    if (tienePermiso("comprar_articulo")) {
+        menuHTML += `<button onclick="comprarArticulo()">4. Comprar artículo</button>`;
+    }
+    menuHTML += `<button onclick="cerrarSesion()">5. Salir</button>`;
+
+    document.getElementById("menu").innerHTML = menuHTML;
+    }
+
+    function gestionarUsuarios() {
+    const opcion = prompt("1 = Crear usuario, 2 = Editar usuario, 3 = Eliminar usuario");
+        switch (opcion) {
+            case "1": crearCuenta(); break;
+            case "2": editarUsuario(); break;
+            case "3": eliminarUsuario(); break;
+            default: alert("Opción inválida.");
+        }
+    }
+
+    function editarUsuario() {
+    const nombreUsuario = prompt("Ingrese el nombre de usuario que desea editar:");
+    const usuario = usuarios.find(u => u.usuario === nombreUsuario);
+        if (!usuario) {
+            alert("Usuario no encontrado.");
+            return;
+        }
+
+        const nuevoNombre = prompt("Nuevo nombre completo:", usuario.nombre);
+        const nuevaCategoria = prompt("Nueva categoría (Administrador, Cliente, Vendedor, Trabajador de depósito):", usuario.categoria);
+        if (!permisosPorRol[nuevaCategoria]) {
+            alert("Categoría inválida.");
+            return;
+        }
+
+        usuario.nombre = nuevoNombre;
+        usuario.categoria = nuevaCategoria;
+        alert("Usuario actualizado correctamente.");
+    }
+
+    function eliminarUsuario() {
+    const nombreUsuario = prompt("Ingrese el nombre de usuario que desea eliminar:");
+    const index = usuarios.findIndex(u => u.usuario === nombreUsuario);
+
+        if (index === -1) {
+            alert("Usuario no encontrado.");
+            return;
+        }
+
+        const confirmar = confirm(`¿Está seguro que desea eliminar el usuario "${usuarios[index].usuario}"?`);
+        if (confirmar) {
+            usuarios.splice(index, 1);
+            alert("Usuario eliminado.");
+        } else {
+            alert("Eliminación cancelada.");
+        }
+    }
+
+
+
+    function crearCuenta() {
+    if (!usuarioActual || usuarioActual.categoria !== "Administrador") {
+        alert("Solo los administradores pueden crear cuentas de usuario.");
+        return;
+    }
+
+    const usuario = prompt("Ingrese un nombre de usuario:");
+    if (usuarios.some(u => u.usuario === usuario)) {
+        alert("El usuario ya existe.");
+        return;
+    }
+
+    const nombre = prompt("Ingrese su nombre completo:");
+    const contrasena = prompt("Ingrese una contraseña segura:");
+    if (!validarContrasena(contrasena)) return;
+
+    const categoria = prompt("Ingrese la categoría (Administrador, Cliente, Vendedor, Trabajador de depósito):");
+    if (!permisosPorRol[categoria]) {
+        alert("Categoría inválida.");
+        return;
+    }
+
+    usuarios.push({ usuario, nombre, contrasena, categoria });
+    alert("Cuenta creada exitosamente.");
+    }
+
+
+    function validarContrasena(contrasena) {
+      const longitudValida = contrasena.length >= 8 && contrasena.length <= 16;
+      const tieneMayuscula = /[A-Z]/.test(contrasena);
+      const simbolosEspeciales = contrasena.match(/[^a-zA-Z0-9]/g);
+      const tieneDosSimbolos = simbolosEspeciales && simbolosEspeciales.length >= 2;
+
+      if (!longitudValida) {
+        alert("La contraseña debe tener entre 8 y 16 caracteres.");
+        return false;
+      }
+      if (!tieneMayuscula) {
+        alert("La contraseña debe contener al menos una letra mayúscula.");
+        return false;
+      }
+      if (!tieneDosSimbolos) {
+        alert("La contraseña debe contener al menos dos símbolos especiales.");
+        return false;
+      }
+      return true;
+    }
+
+    function cambiarContrasena() {
+      if (!tienePermiso("cambiar_contrasena")) {
+        alert("No tiene permiso para cambiar la contraseña.");
+        return;
+      }
+      const nueva = prompt("Ingrese la nueva contraseña:");
+      if (!validarContrasena(nueva)) return;
+      usuarioActual.contrasena = nueva;
+      alert("Contraseña actualizada con éxito.");
+    }
+
+    function listarArticulos() {
+      if (!tienePermiso("ver_productos")) {
+        alert("No tiene permiso para ver los productos.");
+        return;
+      }
+      let mensaje = "Lista de artículos:\n";
+      productos.forEach(p => {
+        mensaje += `ID: ${p.id} | ${p.nombre} | $${p.precio} | Stock: ${p.stock}\n`;
+      });
+      alert(mensaje);
+    }
+
+    function gestionarArticulos() {
+      if (!tienePermiso("gestionar_articulos")) {
+        alert("No tiene permiso para gestionar artículos.");
+        return;
+      }
+      const accion = prompt("1 = Listar artículos, 2 = Nuevo artículo, 3 = Editar artículo, 4 = Eliminar artículo");
+      switch (accion) {
+        case "1": listarArticulos(); break;
+        case "2":
+          const nuevoId = parseInt(prompt("ID del nuevo artículo:"));
+          const nuevoNombre = prompt("Nombre del nuevo artículo:");
+          const nuevoPrecio = parseFloat(prompt("Precio:"));
+          const nuevoStock = parseInt(prompt("Stock:"));
+          productos.push({ id: nuevoId, nombre: nuevoNombre, precio: nuevoPrecio, stock: nuevoStock });
+          alert("Artículo agregado.");
+          break;
+        case "3":
+          const idEditar = parseInt(prompt("ID del artículo a editar:"));
+          const productoEditar = productos.find(p => p.id === idEditar);
+          if (!productoEditar) return alert("No existe el artículo.");
+          productoEditar.nombre = prompt("Nuevo nombre:", productoEditar.nombre);
+          productoEditar.precio = parseFloat(prompt("Nuevo precio:", productoEditar.precio));
+          productoEditar.stock = parseInt(prompt("Nuevo stock:", productoEditar.stock));
+          alert("Artículo actualizado.");
+          break;
+        case "4":
+          const idEliminar = parseInt(prompt("ID del artículo a eliminar:"));
+          const index = productos.findIndex(p => p.id === idEliminar);
+          if (index === -1) return alert("No existe el artículo.");
+          productos.splice(index, 1);
+          alert("Artículo eliminado.");
+          break;
+        default:
+          alert("Opción inválida.");
+      }
+    }
+
+    function comprarArticulo() {
+      if (!tienePermiso("comprar_articulo")) {
+        alert("No tiene permiso para comprar artículos.");
+        return;
+      }
+      const id = parseInt(prompt("Ingrese el ID del artículo que desea comprar:"));
+      const producto = productos.find(p => p.id === id);
+      if (!producto) {
+        alert("El artículo no existe.");
+        return;
+      }
+
+      if (producto.stock <= 0) {
+        alert("El artículo no tiene stock disponible.");
+        return;
+      }
+
+      const cantidad = parseInt(prompt(`Ingrese la cantidad de \"${producto.nombre}\" que desea comprar:`));
+      if (isNaN(cantidad) || cantidad <= 0) {
+        alert("Cantidad inválida.");
+        return;
+      }
+
+      if (cantidad > producto.stock) {
+        alert(`No hay suficiente stock. Stock disponible: ${producto.stock}`);
+        return;
+      }
+
+      const total = cantidad * producto.precio;
+      const confirmar = confirm(`Está a punto de comprar ${cantidad} unidades de \"${producto.nombre}\" por un total de $${total.toFixed(2)}.\n¿Desea continuar?`);
+
+      if (confirmar) {
+        producto.stock -= cantidad;
+        alert(`Compra realizada con éxito. Stock restante: ${producto.stock}`);
+      } else {
+        alert("Compra cancelada.");
+      }
+    }
+
+    function cerrarSesion() {
+        usuarioActual = null;
+        alert("Sesión cerrada.");
+        mostrarMenuPrincipal();
+    }
+
+
+    mostrarMenuPrincipal();
+  </script>
+</body>
+</html>
