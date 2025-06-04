@@ -52,9 +52,12 @@ class ApplicationModel
 
             if( userData.isLocked == false )
             {
-                if( userData.password === userPassword)
-                {
+                if (userData.password === userPassword) {
                     api_return.status = true;
+                    api_return.result = {
+                        user: userData.user,
+                        category: userData.category
+                    };
                 }
                 else
                 {

@@ -14,7 +14,7 @@ class ApplicationUI
 
         if ( api_return.status)
         {
-            alert('Usuario Autenticado Exitosamente');
+            alert(`Usuario Autenticado Exitosamente, Bienvenido ${api_return.result.category}`);
         }
         else if ( api_return.status == false)
         {
