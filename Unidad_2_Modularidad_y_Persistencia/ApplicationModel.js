@@ -5,14 +5,15 @@ class ApplicationModel
         this._authData = new Map();
         this._maxLoginFailedAttempts = 3;
 
-        let users_Data = [
+        this._users_Data = [
             {user: "admin", name: "admin123", password: "administrar123", category: "Administrador", failedLoginCounter: 0},
             {user: "cliente", name: "cliente123", password: "consumir123", category: "Cliente", failedLoginCounter: 0},
             {user: "vendedor", name: "vendedor123", password: "Bender123", category: "Vendedor", failedLoginCounter: 0},
             {user: "deposito", name: "deposito123", password: "depositar123", category: "Trabajador de depósito", failedLoginCounter: 0}  
         ];
 
-        this._actualUser = null; 
+        this._actualUserName = null;
+        this._actualUserCategory = null; 
 
         this._products = [
             { id: 1, name: "Lavandina x 1L", price: 875.25, stock: 3000 },
@@ -20,14 +21,14 @@ class ApplicationModel
             { id: 22, name: "Jabón en polvo x 250g", price: 650.22, stock: 407 }
         ];
 
-        let permisosPorRol = {
-            "Administrador": ["ver_productos", "gestionar_articulos", "comprar_articulo", "cambiar_contrasena"],
-            "Cliente": ["ver_productos", "comprar_articulo"],
-            "Vendedor": ["ver_productos", "comprar_articulo"],
-            "Trabajador de depósito": ["gestionar_articulos"]
+        this._permisosPorRol = {
+            "Administrador": ["showProducts", "buyProduct", "EliminateProduct", "EditProduct", "NewProduct", "changePassword", "EditUserAccount", "EliminateAccount"],
+            "Cliente": ["showProducts", "buyProduct", "changePassword"],
+            "Vendedor": ["showProducts", "EliminateProduct", "EditProduct"],
+            "Trabajador de depósito": ["NewProduct", "EditProduct"]
         };
 
-        for (let user of users_Data) {
+        for (let user of this._users_Data) {
             this._authData.set(user.name, { ...user, isLocked: false });
         }
     }
@@ -38,47 +39,41 @@ class ApplicationModel
         return this._authData.get(userName);
     }
 
-    authenticateUser( userName, userPassword)
+    authenticateUser(userName, userPassword)
     {
-        let api_return =
-        {
+        let api_return = {
             status: false,
             result: null
         };
 
-        if ((userName !== undefined && userName !== null && userName !== '') &&
-        (userPassword !== undefined && userPassword !== null && userPassword !== ''))
-        {
-            let userData = this.isValidUserGetData(userName);
+        if (userName && userPassword) {
+            let userData = this._authData.get(userName);
 
-            if( userData.isLocked == false )
-            {
+            if (!userData) {
+                api_return.result = 'USER_NOT_FOUND';
+                return api_return;
+            }
+
+            if (!userData.isLocked) {
                 if (userData.password === userPassword) {
                     api_return.status = true;
                     api_return.result = {
                         user: userData.user,
                         category: userData.category
                     };
-                    this._actualUser = userData.name; // Guardamos el "name" del usuario (clave del Map)
-                }
-                else
-                {
-                    api_return.status = false;
-                    api_return.result = 'USER_PASSWORD_FAILED';
-
+                    this._actualUserName = userData.name;
+                    this._actualUserCategory = userData.category;
+                    userData.failedLoginCounter = 0; // reset
+                } else {
                     userData.failedLoginCounter++;
-
-                    if( userData.failedLoginCounter == this._maxLoginFailedAttempts)
-                    {
+                    if (userData.failedLoginCounter >= this._maxLoginFailedAttempts) {
                         userData.isLocked = true;
-                        api_return.status = false;
                         api_return.result = 'BLOCKED_USER';
+                    } else {
+                        api_return.result = 'USER_PASSWORD_FAILED';
                     }
                 }
-            }
-            else
-            {
-                api_return.status = false;
+            } else {
                 api_return.result = 'BLOCKED_USER';
             }
         }
@@ -86,14 +81,31 @@ class ApplicationModel
         return api_return;
     }
 
+
     getMaxLoginAttempts()
     {
         return this._maxLoginFailedAttempts;
     }
 
+    HavePermission(permission) {
+        const categoria = this._actualUserCategory;
+
+        if (!categoria) {
+            console.warn("Categoría de usuario no definida.");
+            return false;
+        }
+
+        return this._permisosPorRol[categoria]?.includes(permission) || false;
+    }
+
     changePassword()
     {
-        const userData = this._authData.get(this._actualUser);
+        if (!this.HavePermission("changePassword")) {
+            alert("No tiene permiso para cambiar la contraseña.");
+            return;
+        }
+
+        let userData = this._authData.get(this._actualUserName);
 
         if (!userData) {
             alert("Error: Usuario no autenticado.");
@@ -110,34 +122,23 @@ class ApplicationModel
 
             const lengthValid = newPassword.length >= 8 && newPassword.length <= 16;
             const hasUppercase = /[A-Z]/.test(newPassword);
-            const symbolMatches = newPassword.match(/[^a-zA-Z0-9]/g); // cuenta los símbolos
+            const symbolMatches = newPassword.match(/[^a-zA-Z0-9]/g);
             const hasAtLeastTwoSymbols = symbolMatches && symbolMatches.length >= 2;
 
-            if (!lengthValid) {
-                alert("Error: La contraseña debe tener entre 8 y 16 caracteres.");
+            if (!lengthValid || !hasUppercase || !hasAtLeastTwoSymbols) {
+                alert("Error: La contraseña debe tener entre 8 y 16 caracteres, al menos una mayúscula y al menos 2 símbolos especiales.");
                 continue;
             }
 
-            if (!hasUppercase) {
-                alert("Error: La contraseña debe contener al menos una letra mayúscula.");
-                continue;
-            }
-
-            if (!hasAtLeastTwoSymbols) {
-                alert("Error: La contraseña debe contener al menos dos símbolos especiales.");
-                continue;
-            }
-
-            // Si pasó todas las validaciones, se cambia la contraseña
             userData.password = newPassword;
             alert("Contraseña cambiada exitosamente.");
-            break; // salir del bucle
+            break;
         }
     }
 
     createAccount(user, name, password, category)
     {
-        const categoriasValidas = ["Administrador", "Cliente", "Vendedor", "Trabajador de depósito"];
+        const validCategory = ["Administrador", "Cliente", "Vendedor", "Trabajador de depósito"];
 
         if (!user || !name || !password || !category) {
             alert("Error: Todos los campos son obligatorios.");
@@ -149,12 +150,11 @@ class ApplicationModel
             return;
         }
 
-        if (!categoriasValidas.includes(category)) {
-            alert(`Error: Categoría inválida. Debe ser una de: ${categoriasValidas.join(", ")}`);
+        if (!validCategory.includes(category)) {
+            alert(`Error: Categoría inválida. Debe ser una de: ${validCategory.join(", ")}`);
             return;
         }
 
-        // Validación de contraseña segura
         const lengthValid = password.length >= 8 && password.length <= 16;
         const hasUppercase = /[A-Z]/.test(password);
         const symbolMatches = password.match(/[^a-zA-Z0-9]/g);
@@ -165,7 +165,6 @@ class ApplicationModel
             return;
         }
 
-        // Agrega el nuevo usuario
         this._authData.set(name, {
             user: user,
             name: name,
@@ -174,12 +173,62 @@ class ApplicationModel
             failedLoginCounter: 0,
             isLocked: false
         });
+
         alert(`✅ Usuario "${name}" agregado exitosamente con categoría "${category}".`);
+    }
+
+    EditUserAccount(accountName, newUser, newName, newPassword, newCategory)
+    {
+        if (!this.HavePermission("EditUserAccount")) {
+            alert("No tiene permiso para editar cuentas.");
+            return;
+        }
+
+        let userData = this._authData.get(accountName);
+
+        if (!userData) {
+            alert("No se encontró un usuario con ese nombre.");
+            return;
+        }
+
+        if (newUser && newUser.trim() !== '') userData.user = newUser.trim();
+        if (newName && newName.trim() !== '') {
+            // Si cambia el name, debemos actualizar la clave en el Map
+            this._authData.delete(accountName);
+            userData.name = newName.trim();
+            this._authData.set(userData.name, userData);
+        }
+        if (newPassword && newPassword.trim() !== '') userData.password = newPassword.trim();
+        if (newCategory && newCategory.trim() !== '') userData.category = newCategory.trim();
+
+        alert("Información del usuario actualizada exitosamente.");
+    }
+
+
+    EliminateAccount(accountName)
+    {
+        if (!this.HavePermission("EliminateAccount")) {
+            alert("No tiene permiso para eliminar cuentas.");
+            return;
+        }
+
+        if (!this._authData.has(accountName)) {
+            alert("Usuario no encontrado.");
+            return;
+        }
+
+        this._authData.delete(accountName);
+        alert("Cuenta eliminada exitosamente.");
     }
     /////////////////////////////////////////////////////////////// CUENTA ////////////////////////////////////////////////////////////////////////////////////////////
 
     /////////////////////////////////////////////////////////////// CRUD ////////////////////////////////////////////////////////////////////////////////////////////
     showProducts() {
+        if (!this.HavePermission("showProducts")) {
+            alert("No tiene permiso para ver los productos.");
+            return;
+        }
+
         let mensaje = "Lista de artículos:\n";
         this._products.forEach(p => {
             mensaje += `ID: ${p.id} | ${p.name} | $${p.price} | Stock: ${p.stock}\n`;
@@ -189,6 +238,11 @@ class ApplicationModel
 
     NewProduct(newProductID, newProductName, newProductPrice, newProductStock)
     {
+        if (!this.HavePermission("newProduct")) {
+            alert("No tiene permiso para añadir un nuevo producto.");
+            return;
+        }
+
         newProductID = Number(newProductID);
         newProductPrice = Number(newProductPrice);
         newProductStock = Number(newProductStock);
@@ -220,6 +274,11 @@ class ApplicationModel
 
     EditProduct(modProductID, modProductName, modProductPrice, modProductStock)
     {
+        if (!this.HavePermission("EditProduct")) {
+            alert("No tiene permiso para Editar un Producto.");
+            return;
+        }
+
         modProductID = Number(modProductID);
         modProductPrice = Number(modProductPrice);
         modProductStock = Number(modProductStock);
@@ -251,6 +310,11 @@ class ApplicationModel
     }
 
     EliminateProduct(eliminateProductID) {
+        if (!this.HavePermission("EliminateProduct")) {
+            alert("No tiene permiso para Eliminar un Producto");
+            return;
+        }
+
         eliminateProductID = Number(eliminateProductID);
 
         const index = this._products.findIndex(p => p.id === eliminateProductID);
@@ -261,6 +325,46 @@ class ApplicationModel
 
         this._products.splice(index, 1);
         alert("Artículo eliminado correctamente.");
+    }
+
+    buyProduct(buyProductID, buyProductStock) {
+        if (!this.HavePermission("buyProduct")) {
+            alert("No tiene permiso para Comprar un Producto.");
+            return;
+        }
+
+        buyProductID = Number(buyProductID);
+        buyProductStock = Number(buyProductStock);
+
+        // Validaciones básicas
+        if (isNaN(buyProductID)) {
+            alert("ID inválido.");
+            return;
+        }
+
+        if (isNaN(buyProductStock) || buyProductStock <= 0) {
+            alert("Cantidad ingresada inválida.");
+            return;
+        }
+
+        // Buscar producto
+        let product = this._products.find(p => p.id === buyProductID);
+        if (!product) {
+            alert("Producto no encontrado.");
+            return;
+        }
+
+        // Verificar stock disponible
+        if (buyProductStock > product.stock) {
+            alert(`No hay suficiente stock disponible. Stock actual: ${product.stock}`);
+            return;
+        }
+
+        // Realizar compra
+        let total = product.price * buyProductStock;
+        product.stock -= buyProductStock;
+
+        alert(`Se ha comprado por un total de $${total} del producto ${product.name}`);
     }
     /////////////////////////////////////////////////////////////// CRUD ////////////////////////////////////////////////////////////////////////////////////////////
 }
