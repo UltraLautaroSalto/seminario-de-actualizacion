@@ -218,6 +218,50 @@ class ApplicationModel
         alert("Producto agregado correctamente."); 
     }
 
+    EditProduct(modProductID, modProductName, modProductPrice, modProductStock)
+    {
+        modProductID = Number(modProductID);
+        modProductPrice = Number(modProductPrice);
+        modProductStock = Number(modProductStock);
+
+        // Validaciones básicas
+        if (isNaN(modProductID)) {
+            alert("ID inválido.");
+            return;
+        }
+
+        // Busca el producto por ID
+        let product = this._products.find(p => p.id === modProductID);
+        if (!product) {
+            alert("Producto no encontrado.");
+            return;
+        }
+
+        // Actualiza si los nuevos datos están presentes y son válidos
+        if (modProductName && modProductName.trim() !== '') {
+            product.name = modProductName.trim();
+        }
+        if (!isNaN(modProductPrice) && modProductPrice > 0) {
+            product.price = modProductPrice;
+        }
+        if (!isNaN(modProductStock) && modProductStock >= 0) {
+            product.stock = modProductStock;
+        }
+        alert("Producto actualizado correctamente.");
+    }
+
+    EliminateProduct(eliminateProductID) {
+        eliminateProductID = Number(eliminateProductID);
+
+        const index = this._products.findIndex(p => p.id === eliminateProductID);
+        if (index === -1) {
+            alert("No existe el artículo.");
+            return;
+        }
+
+        this._products.splice(index, 1);
+        alert("Artículo eliminado correctamente.");
+    }
     /////////////////////////////////////////////////////////////// CRUD ////////////////////////////////////////////////////////////////////////////////////////////
 }
 
