@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Panel de Precios</title>
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+</body>
+
+<script>
+class PricingPanel extends HTMLElement {
+	constructor() {
+		super();
+		this.container = document.createElement('div');
+		this.container.classList.add('w3-row-padding', 'w3-margin-top');
+
+		// Información de los planes (puede ser modificada desde fuera)
+		this.planes = [
+			{ nombre: "Básico", precio: "$9.99", features: ["1 sitio", "10GB espacio", "Soporte limitado"] },
+			{ nombre: "Estándar", precio: "$19.99", features: ["5 sitios", "50GB espacio", "Soporte estándar"] },
+			{ nombre: "Premium", precio: "$29.99", features: ["Sitios ilimitados", "100GB espacio", "Soporte prioritario"] }
+		];
+	}
+
+	// Generador de tarjetas de planes
+	renderPlans() {
+		this.container.innerHTML = ''; // Limpiar para redibujar
+
+		this.planes.forEach(plan => {
+			let card = document.createElement('div');
+			card.classList.add('w3-third', 'w3-margin-bottom');
+
+			let panel = document.createElement('div');
+			panel.classList.add('w3-card', 'w3-white');
+
+			let header = document.createElement('div');
+			header.classList.add('w3-container', 'w3-blue');
+			header.appendChild(document.createTextNode(plan.nombre));
+
+			let price = document.createElement('div');
+			price.classList.add('w3-container');
+			let priceTag = document.createElement('h3');
+			priceTag.textContent = plan.precio;
+			price.appendChild(priceTag);
+
+			let list = document.createElement('ul');
+			list.classList.add('w3-ul');
+
+			plan.features.forEach(f => {
+				let li = document.createElement('li');
+				li.textContent = f;
+				list.appendChild(li);
+			});
+
+			let footer = document.createElement('div');
+			footer.classList.add('w3-container');
+			let button = document.createElement('button');
+			button.classList.add('w3-button', 'w3-block', 'w3-blue');
+			button.textContent = "Seleccionar";
+			footer.appendChild(button);
+
+			// Armar tarjeta
+			panel.appendChild(header);
+			panel.appendChild(price);
+			panel.appendChild(list);
+			panel.appendChild(footer);
+			card.appendChild(panel);
+			this.container.appendChild(card);
+		});
+	}
+
+	connectedCallback() {
+		this.appendChild(this.container);
+		this.renderPlans();
+	}
+
+	// Método para cambiar los planes dinámicamente desde JS
+	setPlans(nuevosPlanes) {
+		this.planes = nuevosPlanes;
+		this.renderPlans();
+	}
+
+	disconnectedCallback() {}
+	adoptedCallback() {}
+	connectedMoveCallback() {}
+	static get observableAttributes() {
+		return [];
+	}
+	attributeChangedCallback() {}
+}
+
+customElements.define('x-pricing', PricingPanel);
+
+function main() {
+	const panel = new PricingPanel();
+	document.body.appendChild(panel);
+
+	// Ejemplo: cambiar los planes luego de 5 segundos
+	setTimeout(() => {
+		panel.setPlans([
+			{ nombre: "Free", precio: "$0", features: ["1 sitio", "1GB espacio", "Sin soporte"] },
+			{ nombre: "Pro", precio: "$15.00", features: ["10 sitios", "80GB espacio", "Soporte avanzado"] }
+		]);
+	}, 5000);
+}
+
+window.onload = main;
+</script>
+</html>

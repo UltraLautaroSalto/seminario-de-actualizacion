@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Login WebComponent</title>
+	<link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+</body>
+
+<script>
+class LoginComponent extends HTMLElement {
+	constructor() {
+		super();
+
+		// Crear formulario
+		this.form = document.createElement('form');
+		this.container = document.createElement('div');
+		this.container.classList.add('w3-container'); // Usa clase de W3CSS
+
+		// Label y campo de usuario
+		this.labelUser = document.createElement('label');
+		this.labelUser.innerText = 'Username';
+		this.labelUser.setAttribute('for', 'uname');
+
+		this.inputUser = document.createElement('input');
+		this.inputUser.type = 'text';
+		this.inputUser.placeholder = 'Enter Username';
+		this.inputUser.name = 'uname';
+		this.inputUser.classList.add('w3-input', 'w3-border', 'w3-margin-bottom');
+		this.inputUser.required = true;
+
+		// Label y campo de contraseña
+		this.labelPass = document.createElement('label');
+		this.labelPass.innerText = 'Password';
+		this.labelPass.setAttribute('for', 'psw');
+
+		this.inputPass = document.createElement('input');
+		this.inputPass.type = 'password';
+		this.inputPass.placeholder = 'Enter Password';
+		this.inputPass.name = 'psw';
+		this.inputPass.classList.add('w3-input', 'w3-border', 'w3-margin-bottom');
+		this.inputPass.required = true;
+
+		// Botón de login
+		this.button = document.createElement('button');
+		this.button.type = 'submit';
+		this.button.innerText = 'Login';
+		this.button.classList.add('w3-button', 'w3-blue', 'w3-margin-top');
+
+		// Armar estructura
+		this.container.appendChild(this.labelUser);
+		this.container.appendChild(this.inputUser);
+		this.container.appendChild(this.labelPass);
+		this.container.appendChild(this.inputPass);
+		this.container.appendChild(this.button);
+
+		this.form.appendChild(this.container);
+	}
+
+	connectedCallback() {
+		this.appendChild(this.form);
+
+		// Evento de submit (opcional)
+		this.form.addEventListener('submit', (e) => {
+			e.preventDefault();
+			alert(`Bienvenido, ${this.inputUser.value}`);
+		});
+	}
+
+	disconnectedCallback() {}
+	adoptedCallback() {}
+	connectedMoveCallback() {}
+	static get observableAttributes() {
+		return [];
+	}
+	attributeChangedCallback() {}
+}
+
+customElements.define('x-login', LoginComponent);
+
+function main() {
+	document.body.appendChild(new LoginComponent());
+}
+
+window.onload = main;
+</script>
+</html>
