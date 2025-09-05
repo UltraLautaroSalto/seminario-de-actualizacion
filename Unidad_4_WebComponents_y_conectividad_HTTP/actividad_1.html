@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad 1 - WebComponent</title>
+</head>
+<body>
+  <!-- Aquí usamos nuestro WebComponent -->
+  <solicitud-component></solicitud-component>
+
+  <script>
+    // Definimos una clase que extiende de HTMLElement para crear el WebComponent
+    class SolicitudComponent extends HTMLElement {
+      constructor() {
+        super(); // Llamamos al constructor de la clase padre
+
+        // Creamos un Shadow DOM para encapsular el contenido del componente
+        this.attachShadow({ mode: "open" });
+
+        // Creamos los elementos internos del componente
+        const button = document.createElement("button");
+        button.textContent = "Efectuar Solicitud"; // Texto del botón
+
+        const textarea = document.createElement("textarea");
+        textarea.rows = 10; // Cantidad de filas visibles
+        textarea.cols = 50; // Cantidad de columnas visibles
+
+        // Agregamos los elementos al shadow DOM
+        this.shadowRoot.appendChild(button);
+        this.shadowRoot.appendChild(document.createElement("br"));
+        this.shadowRoot.appendChild(textarea);
+
+        // Evento click sobre el botón
+        button.addEventListener("click", () => {
+          // Creamos un objeto XMLHttpRequest para hacer la solicitud
+          const xhr = new XMLHttpRequest();
+
+          // Configuramos el método y la URL del endpoint
+          xhr.open("GET", "https://jsonplaceholder.typicode.com/posts/1", true);
+
+          // Definimos qué hacer cuando la respuesta llegue
+          xhr.onload = () => {
+            if (xhr.status === 200) {
+              // Insertamos la respuesta en el textarea
+              textarea.value = xhr.responseText;
+            } else {
+              // En caso de error mostramos el código de estado
+              textarea.value = "Error en la solicitud: " + xhr.status;
+            }
+          };
+
+          // Enviamos la solicitud
+          xhr.send();
+        });
+      }
+    }
+
+    // Registramos el componente para poder usarlo como <solicitud-component>
+    customElements.define("solicitud-component", SolicitudComponent);
+  </script>
+</body>
+</html>
