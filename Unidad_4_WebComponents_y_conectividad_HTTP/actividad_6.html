@@ -1,0 +1,74 @@
+// Servicio encargado de obtener datos
+class UsuariosService {
+  constructor(baseUrl) {
+    this.baseUrl = baseUrl;
+  }
+
+  async getAll() {
+    const res = await fetch(this.baseUrl);
+    return res.json();
+  }
+
+  async getById(id) {
+    const res = await fetch(`${this.baseUrl}/${id}`);
+    return res.json();
+  }
+}
+
+// Clase para renderizar tablas genéricas
+class TablaUsuarios {
+  constructor(container, columns) {
+    this.container = container;
+    this.columns = columns;
+  }
+
+  render(data, onRowClick) {
+    this.container.innerHTML = "";
+
+    const table = document.createElement("table");
+    table.className = "w3-table w3-bordered w3-hoverable w3-card-4";
+
+    // Cabecera dinámica
+    const headerRow = document.createElement("tr");
+    headerRow.className = "w3-light-blue";
+    this.columns.forEach(c => {
+      const th = document.createElement("th");
+      th.textContent = c.label;
+      headerRow.appendChild(th);
+    });
+    table.appendChild(headerRow);
+
+    // Filas dinámicas
+    data.forEach(user => {
+      const row = document.createElement("tr");
+      this.columns.forEach(c => {
+        const td = document.createElement("td");
+        td.textContent = user[c.key];
+        row.appendChild(td);
+      });
+      row.addEventListener("click", () => onRowClick(user));
+      table.appendChild(row);
+    });
+
+    this.container.appendChild(table);
+  }
+}
+
+// Clase para mostrar un modal
+class ModalUsuario {
+  constructor(modalElement) {
+    this.modal = modalElement;
+    this.content = modalElement.querySelector("#modalContent");
+    this.closeBtn = modalElement.querySelector("#closeModal");
+    this.closeBtn.onclick = () => (this.modal.style.display = "none");
+  }
+
+  show(userDetails) {
+    this.content.innerHTML = `
+      <h3>${userDetails.name} (${userDetails.username})</h3>
+      <p><strong>Dirección:</strong> ${userDetails.address.street}, ${userDetails.address.city}</p>
+      <p><strong>Compañía:</strong> ${userDetails.company.name}</p>
+    `;
+    this.modal.style.display = "block";
+  }
+}

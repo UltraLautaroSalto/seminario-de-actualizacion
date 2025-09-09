@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Actividad 5 - WebComponent con Modal</title>
+  <!-- Estilos de W3.CSS -->
+  <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
+</head>
+<body>
+  <!-- Uso del WebComponent -->
+  <usuarios-tabla></usuarios-tabla>
+
+  <script>
+    class UsuariosTabla extends HTMLElement {
+      constructor() {
+        super();
+
+        // Creamos el Shadow DOM
+        this.attachShadow({ mode: "open" });
+
+        // Importamos W3.CSS dentro del Shadow DOM
+        const link = document.createElement("link");
+        link.rel = "stylesheet";
+        link.href = "https://www.w3schools.com/w3css/4/w3.css";
+        this.shadowRoot.appendChild(link);
+
+        // Botón de solicitud
+        const button = document.createElement("button");
+        button.textContent = "Efectuar Solicitud";
+        button.className = "w3-button w3-blue w3-margin-bottom";
+
+        // Contenedor de tabla
+        const container = document.createElement("div");
+
+        // Contenedor de modal
+        const modal = document.createElement("div");
+        modal.id = "userModal";
+        modal.className = "w3-modal";
+
+        // Contenido del modal
+        modal.innerHTML = `
+          <div class="w3-modal-content w3-card-4 w3-animate-top" style="max-width:600px">
+            <header class="w3-container w3-teal"> 
+              <span id="closeModal" class="w3-button w3-display-topright">&times;</span>
+              <h2>Detalles del Usuario</h2>
+            </header>
+            <div class="w3-container" id="modalContent">
+              <!-- Aquí se insertarán los datos dinámicos -->
+            </div>
+            <footer class="w3-container w3-teal">
+              <p>Información adicional</p>
+            </footer>
+          </div>
+        `;
+
+        // Agregamos al Shadow DOM
+        this.shadowRoot.appendChild(button);
+        this.shadowRoot.appendChild(container);
+        this.shadowRoot.appendChild(modal);
+
+        // Evento del botón
+        button.addEventListener("click", async () => {
+          try {
+            const response = await fetch("https://jsonplaceholder.typicode.com/users/");
+            if (!response.ok) throw new Error("Error en la solicitud: " + response.status);
+
+            const data = await response.json();
+            container.innerHTML = "";
+
+            // Creamos la tabla
+            const table = document.createElement("table");
+            table.className = "w3-table w3-bordered w3-hoverable w3-card-4";
+
+            // Cabecera
+            const headerRow = document.createElement("tr");
+            headerRow.className = "w3-light-blue";
+            const headers = ["ID", "Usuario", "Nombre", "Correo", "Web", "Celular"];
+            headers.forEach(h => {
+              const th = document.createElement("th");
+              th.textContent = h;
+              headerRow.appendChild(th);
+            });
+            table.appendChild(headerRow);
+
+            // Filas
+            data.forEach(user => {
+              const row = document.createElement("tr");
+
+              // Campos visibles
+              row.innerHTML = `
+                <td>${user.id}</td>
+                <td>${user.username}</td>
+                <td>${user.name}</td>
+                <td><span class="w3-tag w3-teal w3-round">${user.email}</span></td>
+                <td>${user.website}</td>
+                <td>${user.phone}</td>
+              `;
+
+              // Evento para abrir modal al hacer clic en la fila
+              row.addEventListener("click", async () => {
+                const userResponse = await fetch("https://jsonplaceholder.typicode.com/users/" + user.id);
+                if (!userResponse.ok) {
+                  alert("Error al obtener datos del usuario");
+                  return;
+                }
+
+                const userDetails = await userResponse.json();
+
+                // Construimos contenido del modal con datos adicionales
+                const modalContent = this.shadowRoot.getElementById("modalContent");
+                modalContent.innerHTML = `
+                  <h3>${userDetails.name} (${userDetails.username})</h3>
+                  <p><strong>Email:</strong> ${userDetails.email}</p>
+                  <p><strong>Teléfono:</strong> ${userDetails.phone}</p>
+                  <p><strong>Website:</strong> ${userDetails.website}</p>
+                  <hr>
+                  <h4>Dirección</h4>
+                  <p>${userDetails.address.street}, ${userDetails.address.suite}, 
+                     ${userDetails.address.city}, ${userDetails.address.zipcode}</p>
+                  <p><strong>Geo:</strong> [${userDetails.address.geo.lat}, ${userDetails.address.geo.lng}]</p>
+                  <hr>
+                  <h4>Compañía</h4>
+                  <p><strong>Nombre:</strong> ${userDetails.company.name}</p>
+                  <p><strong>Eslogan:</strong> ${userDetails.company.catchPhrase}</p>
+                  <p><strong>BS:</strong> ${userDetails.company.bs}</p>
+                `;
+
+                // Mostramos modal
+                modal.style.display = "block";
+              });
+
+              table.appendChild(row);
+            });
+
+            container.appendChild(table);
+
+            // Cerrar modal
+            const closeBtn = this.shadowRoot.getElementById("closeModal");
+            closeBtn.onclick = () => (modal.style.display = "none");
+
+            // Cerrar si se hace click fuera del contenido
+            window.onclick = (event) => {
+              if (event.target === modal) {
+                modal.style.display = "none";
+              }
+            };
+
+          } catch (error) {
+            container.innerHTML = `<p class="w3-text-red">${error.message}</p>`;
+          }
+        });
+      }
+    }
+
+    customElements.define("usuarios-tabla", UsuariosTabla);
+  </script>
+</body>
+</html>
